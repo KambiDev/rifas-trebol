@@ -1,9 +1,20 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { body, validationResult } from 'express-validator';
 import { login, registerDevice, listDevices, revokeDevice } from '../controllers/auth.controller.js';
 import { verifyToken, requireRole } from '../middlewares/auth.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
 const router = Router();
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts, please try again later' },
+});
 
 // Middleware to handle validation errors
 const validateRequest = (req, res, next) => {
@@ -17,13 +28,14 @@ const validateRequest = (req, res, next) => {
 // --- Public Routes ---
 router.post(
   '/login',
+  loginLimiter,
   [
     body('username').notEmpty().withMessage('Username is required'),
     body('password').notEmpty().withMessage('Password is required'),
     body('device_id').notEmpty().withMessage('Device ID is required'),
   ],
   validateRequest,
-  login
+  asyncHandler(login)
 );
 
 // --- Protected Routes (Admin only) ---
@@ -36,21 +48,21 @@ router.post(
     body('device_id').notEmpty().withMessage('Device ID is required'),
   ],
   validateRequest,
-  registerDevice
+  asyncHandler(registerDevice)
 );
 
 router.get(
-  '/devices/:user_id',
+  '/devices/:id',
   verifyToken,
   requireRole('admin'),
-  listDevices
+  asyncHandler(listDevices)
 );
 
 router.delete(
-  '/devices/:device_id',
+  '/devices/:id',
   verifyToken,
   requireRole('admin'),
-  revokeDevice
+  asyncHandler(revokeDevice)
 );
 
 export default router;

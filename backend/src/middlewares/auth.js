@@ -1,13 +1,14 @@
 import jwt from 'jsonwebtoken';
+import { ForbiddenError, UnauthorizedError } from '../utils/errors.js';
 
 /**
  * Middleware to verify JWT token from Authorization header.
  * Attaches the decoded payload to req.user.
  */
-export const verifyToken = (req, res, next) => {
+export const verifyToken = (req, _res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No token provided or invalid format' });
+    return next(new UnauthorizedError('No token provided or invalid format'));
   }
 
   const token = authHeader.split(' ')[1];
@@ -17,7 +18,7 @@ export const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    next(new UnauthorizedError('Invalid or expired token'));
   }
 };
 
@@ -27,13 +28,13 @@ export const verifyToken = (req, res, next) => {
  * @param  {...string} roles - Allowed roles (e.g. 'admin', 'vendor')
  */
 export const requireRole = (...roles) => {
-  return (req, res, next) => {
+  return (req, _res, next) => {
     if (!req.user || !req.user.role) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return next(new UnauthorizedError('Authentication required'));
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
+      return next(new ForbiddenError('Insufficient permissions'));
     }
 
     next();

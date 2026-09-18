@@ -1,17 +1,5 @@
-import 'dotenv/config';
 import mysql from 'mysql2/promise';
-
-/**
- * Validate required environment variables for DB connection.
- * Throws an error if any variable is missing so the app fails fast.
- */
-function validateEnv() {
-  const required = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_NAME'];
-  const missing = required.filter(key => !process.env[key]);
-  if (missing.length) {
-    throw new Error(`Missing DB env vars: ${missing.join(', ')}`);
-  }
-}
+import { validateEnv } from './env.js';
 
 validateEnv();
 
