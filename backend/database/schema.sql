@@ -97,8 +97,3 @@ INSERT INTO games (name, prize_multiplier) VALUES
   ('Hondureña',    50.00),
   ('La Primera',   50.00),
   ('Salvadoreña',  50.00);
-
--- Default admin user | password: Admin1234!
--- Regenerate hash: node -e "require('bcryptjs').hash('yourpass',10).then(console.log)"
-INSERT INTO usuarios (name, username, password_hash, role) VALUES
-  ('Administrator', 'admin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
