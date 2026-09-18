@@ -2,6 +2,7 @@
   "name": "rifas-trebol-backend",
   "version": "1.0.0",
   "description": "REST API for Rifas Trebol POS system",
+  "type": "module",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
