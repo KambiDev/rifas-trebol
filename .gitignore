@@ -6,3 +6,4 @@ Thumbs.db
 .expo/
 dist/
 build/
+backend/database/seeds.dev.sql
