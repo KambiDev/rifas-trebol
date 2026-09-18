@@ -13,6 +13,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+import authRoutes from './routes/auth.routes.js';
+app.use('/api/auth', authRoutes);
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', app: 'rifas-trebol-api', version: '1.0.0' });
 });
