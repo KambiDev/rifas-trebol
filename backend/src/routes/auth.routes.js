@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
-import { login } from '../controllers/auth.controller.js';
+import { login, registerDevice, listDevices, revokeDevice } from '../controllers/auth.controller.js';
+import { verifyToken, requireRole } from '../middlewares/auth.js';
 
 const router = Router();
 
@@ -13,6 +14,7 @@ const validateRequest = (req, res, next) => {
   next();
 };
 
+// --- Public Routes ---
 router.post(
   '/login',
   [
@@ -22,6 +24,33 @@ router.post(
   ],
   validateRequest,
   login
+);
+
+// --- Protected Routes (Admin only) ---
+router.post(
+  '/register-device',
+  verifyToken,
+  requireRole('admin'),
+  [
+    body('user_id').isInt().withMessage('Valid user_id is required'),
+    body('device_id').notEmpty().withMessage('Device ID is required'),
+  ],
+  validateRequest,
+  registerDevice
+);
+
+router.get(
+  '/devices/:user_id',
+  verifyToken,
+  requireRole('admin'),
+  listDevices
+);
+
+router.delete(
+  '/devices/:device_id',
+  verifyToken,
+  requireRole('admin'),
+  revokeDevice
 );
 
 export default router;

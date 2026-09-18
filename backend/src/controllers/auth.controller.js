@@ -68,3 +68,78 @@ export const login = async (req, res) => {
     return res.status(500).json({ error: 'Internal server error during login' });
   }
 };
+
+/**
+ * Register a new device for a user.
+ */
+export const registerDevice = async (req, res) => {
+  const { user_id, device_id } = req.body;
+
+  try {
+    const pool = getPool();
+
+    // Check if the device is already registered for this user
+    const [existing] = await pool.query(
+      'SELECT id FROM authorized_devices WHERE user_id = ? AND device_id = ?',
+      [user_id, device_id]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ error: 'Device is already registered for this user' });
+    }
+
+    await pool.query(
+      'INSERT INTO authorized_devices (user_id, device_id) VALUES (?, ?)',
+      [user_id, device_id]
+    );
+
+    return res.status(201).json({ message: 'Device registered successfully' });
+  } catch (error) {
+    console.error('Error registering device:', error);
+    return res.status(500).json({ error: 'Internal server error registering device' });
+  }
+};
+
+/**
+ * List all registered devices for a user.
+ */
+export const listDevices = async (req, res) => {
+  const { user_id } = req.params;
+
+  try {
+    const pool = getPool();
+    const [devices] = await pool.query(
+      'SELECT id, device_id, linked_at FROM authorized_devices WHERE user_id = ?',
+      [user_id]
+    );
+
+    return res.json(devices);
+  } catch (error) {
+    console.error('Error listing devices:', error);
+    return res.status(500).json({ error: 'Internal server error listing devices' });
+  }
+};
+
+/**
+ * Revoke (delete) a registered device.
+ */
+export const revokeDevice = async (req, res) => {
+  const { device_id } = req.params;
+
+  try {
+    const pool = getPool();
+    const [result] = await pool.query(
+      'DELETE FROM authorized_devices WHERE id = ?',
+      [device_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Device not found' });
+    }
+
+    return res.json({ message: 'Device revoked successfully' });
+  } catch (error) {
+    console.error('Error revoking device:', error);
+    return res.status(500).json({ error: 'Internal server error revoking device' });
+  }
+};
